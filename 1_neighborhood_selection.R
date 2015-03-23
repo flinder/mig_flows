@@ -1,6 +1,6 @@
 ###Testing
-setwd("/Users/cynthiacook/Desktop/")
-data=read.csv("County2010wCoordPOP.csv",header=T)
+
+data=read.csv("data/County2010wCoordPOP.csv",header=T)
 
 edges=Migration[-which(Migration$dest_geocode==Migration$orig_geocode),]
 edges=edges[,c(18,17)]

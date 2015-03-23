@@ -1,7 +1,9 @@
-# Input : list of
+# These functions implement the flow and location neighborhood smoothing methods described in
+# Guo 2014 (see readme). Eqn (x) refers to the equation numbers in the paper.
 
-
-
+# Input : - list of flow and county neighborhoods as created by 1_neighborhood_selection.R
+#         - county information table (coordinates populations etc.)
+# Output:
 
 # Gaussian location model o(Eqn 1)
 gauss_loc <- function(x_0, x_q, s_xq) {
@@ -15,8 +17,6 @@ gauss_loc <- function(x_0, x_q, s_xq) {
 }
 
 ## Calculate theta (Eqn (2))
-# make data frame to sum over
-
 theta <- function(loc_neigh, county_info) {
 
     # neighborhood size
@@ -58,12 +58,7 @@ loc_smooth <- function(x_q, x_0, w_q, sig_x0) {
     
 }
 
-
-    
-
-
-
-## Weight for each  T_q in the neighborhood of  T_0
+## Flow smoother (Eqn (4)) 
 # neigh: flow neighborhood
 # neigh_c: county neighborhood
 

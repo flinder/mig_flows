@@ -1,17 +1,16 @@
 # Find the neighborhoods of counties and of flows, according to
 # specified neighborhood size p
 
-library(microbenchmark)
-
-data <- read.csv("data/County2010wCoordPOP.csv", header = TRUE)
+data <- read.csv("data/County2010wCoordPOP.csv", header = TRUE,
+                 colClasses = c("character", NA, NA, NA))
 migration <- read.csv("data/countyMigration1978_2011.csv", header = TRUE)
 
 self <- as.integer(migration$dest_geocode) == as.integer(migration$orig_geocode)
 edges <- migration[which(!self & migration$year == 2010), ]
 edges <- edges[ , c(18, 17)]
 rownames(edges) <- seq(nrow(edges))
-pop <- data[,2]
-dist <- as.matrix(dist(as.matrix(data[,c(3,4)])))
+pop <- data[, 2]
+dist <- as.matrix(dist(as.matrix(data[, c(3, 4)])))
 
 n <- length(pop)
 p <- 1000000

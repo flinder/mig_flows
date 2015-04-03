@@ -32,8 +32,6 @@ for(i in 1:n){
     bandwidth[i] <- dist[i, dist_ord[last_c]]
     county[[i]] <- data[ngbrhd[-1], 1]
 }
-data$weight <- weight
-data$bandwidth <- bandwidth
 
 a <- function(i) {
     cat(i, "\r")
@@ -45,6 +43,9 @@ a <- function(i) {
     dest_set <- origin_set[is.element(edges[origin_set, 2], dest_n)]
     return(dest_set)
 }
+
+data$weight <- weight
+data$bandwidth <- bandwidth
 
 flow_neigh <- lapply(seq(1:e), a)
 county_info <- data

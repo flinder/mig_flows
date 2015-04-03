@@ -5,13 +5,24 @@
 #         - county information table (coordinates populations etc.)
 # Output:
 
+# Load input from step one
+load("out_1/county_info.RData")
+load("out_1/county_neighborhoods.RData")
+load("out_1/flow_neighborhoods.RData")
+
+migration <- read.csv("data/countyMigration1978_2011.csv", header = TRUE)
+self <- as.integer(migration$dest_geocode) == as.integer(migration$orig_geocode)
+edges <- migration[which(!self & migration$year == 2010), ]
+rownames(edges) <- seq(nrow(edges))
+
+
 # Gaussian location model o(Eqn 1)
 gauss_loc <- function(x_0, x_q, s_xq) {
-    d <- as.numeric(dist(cbind(x_0, x_q)))
+    d <- as.numeric(dist(matrix(c(x_0, x_q), nc = 2, byrow = TRUE)))
     if(d > s_xq) {
        out <- 0
     } else {
-        out <- 1 / (2*pi) * exp(- d / (2 * s_xq^2))
+        out <- 1 / (2*pi) * exp(- d^2 / (2 * s_xq^2))
     }
     return(out)
 }
@@ -19,24 +30,29 @@ gauss_loc <- function(x_0, x_q, s_xq) {
 ## Calculate theta (Eqn (2))
 theta <- function(loc_neigh, county_info) {
 
+    # neighborhood id
+    id <- names(loc_neigh)
+    # ids of counties in neighborhood
+    neigh <- loc_neigh[[1]]
     # neighborhood size
-    k <- length(loc_neigh)
+    k <- length(neigh)
     
     ## Lookup coordinates
     # center location
-    x_0 <- c(county_info$lon[county_info$id == names(loc_neigh)],
-              county_info$lat[county_info$id == names(loc_neigh)])
+    x_0 <- c(county_info$lon[county_info$GEOID == id],
+              county_info$lat[county_info$GEOID == id])
 
     # neighborhood locations
-    x_q <- data.frame("lon" = county_info$lon[is.element(county_info$id, loc_neigh)],
-                       "lat" = county_info$lat[is.element(county_info$id, loc_neigh)])
+    ind <- is.element(county_info$GEOID, neigh)
+    x_q <- data.frame("lon" = county_info$lon[ind],
+                       "lat" = county_info$lat[ind])
 
     ## Lookup population and weights
-    w_q <- c(rep(1, k), county_info$weight[county_id == loc_neigh[k]))
-    s_q <- county_info$pop[is.element(county_info$id, loc_neigh)]
+    w_q <- c(rep(1, (k - 1)), county_info$weight[county_info$GEOID == neigh[k]])
+    s_q <- county_info$pop[ind]
 
     # center bandwith
-    sig_x0 <- county_info$bandwith[county_info$id == names(loc_neigh)]
+    sig_x0 <- county_info$bandwidth[county_info$GEOID == id]
     
     ## Calculate theta
     # df for apply calculattion

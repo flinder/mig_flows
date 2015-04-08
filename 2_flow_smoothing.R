@@ -15,6 +15,8 @@ self <- as.integer(migration$dest_geocode) == as.integer(migration$orig_geocode)
 edges <- migration[which(!self & migration$year == 2010), ]
 rownames(edges) <- seq(nrow(edges))
 
+p <- 1e6
+
 
 # Gaussian location model o(Eqn 1)
 gauss_loc <- function(x_0, x_q, s_xq) {
@@ -67,19 +69,24 @@ theta <- function(loc_neigh, county_info) {
     return(out)
 }
 
-
 # loc_smooth (Eqn (3))
 
-loc_smooth <- function(x_q, x_0, w_q, sig_x0) {
-    
+loc_smooth <- function(x_q, x_0, w_q, sig_x0, p) {
+    gauss_loc(x_q, x_0, sig_x0) * w_q * p * theta()
 }
+
+
+
+#================================================================================
+# From here on it needs work
+
 
 ## Flow smoother (Eqn (4)) 
 # neigh: flow neighborhood
 # neigh_c: county neighborhood
 
 flow_smooth <- function(neigh, neigh_c, main_dat, county_info, county_neigh) {
-    
+
     flow <- as.integer(name(neigh))
     f <- length(neigh)
 

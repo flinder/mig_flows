@@ -3,9 +3,11 @@
 
 data <- read.csv("data/County2010wCoordPOP.csv", header = TRUE,
                  colClasses = c("character", NA, NA, NA))
-migration <- read.csv("data/countyMigration1978_2011.csv", header = TRUE)
+migration <- read.csv("data/countyMigration1978_2011.csv", header = TRUE,
+                      stringsAsFactors = FALSE)
 
-self <- as.integer(migration$dest_geocode) == as.integer(migration$orig_geocode)
+# remove flows to itself
+self <- migration$dest_geocode == migration$orig_geocode
 edges <- migration[which(!self & migration$year == 2010), ]
 edges <- edges[ , c(18, 17)]
 rownames(edges) <- seq(nrow(edges))
@@ -45,6 +47,7 @@ a <- function(i) {
 
 data$weight <- weight
 data$bandwidth <- bandwidth
+e <- nrow(edges)
 
 flow_neigh <- lapply(seq(1:e), a)
 county_info <- data
@@ -53,3 +56,4 @@ county_neigh <- county
 save(county_info, file = "out_1/county_info.RData")
 save(county_neigh, file = "out_1/county_neighborhoods.RData")
 save(flow_neigh, file = "out_1/flow_neighborhoods.RData")
+save(edges, file = "data/edges_2010.RData")

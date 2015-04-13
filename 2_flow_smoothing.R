@@ -11,13 +11,8 @@ load("out_1/county_neighborhoods.RData")
 load("out_1/flow_neighborhoods.RData")
 load("data/edges_2010.RData")
 
-migration <- read.csv("data/countyMigration1978_2011.csv", header = TRUE)
-self <- as.character(migration$dest_geocode) == as.character(migration$orig_geocode)
-edges <- migration[which(!self & migration$year == 2010), ]
-rownames(edges) <- seq(nrow(edges))
-
+# Neighborhood size
 p <- 1e6
-
 
 # Gaussian location model o(Eqn 1)
 gauss_loc <- function(x_0, x_q, s_xq) {

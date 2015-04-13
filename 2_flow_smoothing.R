@@ -118,3 +118,10 @@ flow_smooth <- function(neigh, neigh_c, main_dat, county_info, county_neigh) {
     
     # G(destination)
 }
+
+
+f <- function(x){
+    foo = names(x)
+    print(foo)
+}
+lapply(a, f)

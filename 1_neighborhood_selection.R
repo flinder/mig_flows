@@ -52,6 +52,7 @@ e <- nrow(edges)
 flow_neigh <- lapply(seq(1:e), a)
 county_info <- data
 county_neigh <- county
+names(flow_neigh) <- seq(1:length(flow_neigh))
 
 save(county_info, file = "out_1/county_info.RData")
 save(county_neigh, file = "out_1/county_neighborhoods.RData")

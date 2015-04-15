@@ -26,32 +26,26 @@ gauss_loc <- function(x_0, x_q, s_xq) {
 }
 
 ## Calculate theta (Eqn (2))
-theta <- function(loc_neigh, county_info) {
-
+theta <- function(loc_neigh) {
     # neighborhood id
     id <- names(loc_neigh)
     # ids of counties in neighborhood
     neigh <- loc_neigh[[1]]
     # neighborhood size
     k <- length(neigh)
-    
     ## Lookup coordinates
     # center location
     x_0 <- c(county_info$lon[county_info$GEOID == id],
               county_info$lat[county_info$GEOID == id])
-
     # neighborhood locations
     ind <- is.element(county_info$GEOID, neigh)
     x_q <- data.frame("lon" = county_info$lon[ind],
                        "lat" = county_info$lat[ind])
-
     ## Lookup population and weights
     w_q <- c(rep(1, (k - 1)), county_info$weight[county_info$GEOID == neigh[k]])
     s_q <- county_info$pop[ind]
-
     # center bandwith
     sig_x0 <- county_info$bandwidth[county_info$GEOID == id]
-    
     ## Calculate theta
     # df for apply calculattion
     thet_df <- cbind(matrix(rep(x_0, k), nc = 2, byrow = T),
@@ -60,68 +54,61 @@ theta <- function(loc_neigh, county_info) {
         gauss <- gauss_loc(row[c(1, 2)], row[c(3, 4)], row[7])
         gauss * row[5] * row[6]
     }
-
-    out <- apply(thet_df, 1, sumfun)
+    out <- sum(apply(thet_df, 1, sumfun))
     return(out)
 }
 
 # loc_smooth (Eqn (3))
-
-loc_smooth <- function(x_q, x_0, w_q, sig_x0, p) {
-    gauss_loc(x_q, x_0, sig_x0) * w_q * p * theta()
+loc_smooth <- function(x_q_id, x_0_id) {
+    x_q <- county_info[county_info$GEOID == x_q_id, c(3, 4)]
+    x_0 <- county_info[county_info$GEOID == x_0_id, c(3, 4)]
+    # the value of this weight depends on if q is the last county in a neighborhood
+    neigh <- county_neigh[[x_0_id]]
+    last <- x_q_id == neigh[length(neigh)]
+    if(last) w_q <- county_info[county_info$GEOID == x_0_id, "weight"]
+        else w_q <- 1
+    sig_x0 <- county_info[county_info$GEOID == x_0_id, "bandwidth"]
+    gauss_loc(x_q, x_0, sig_x0) * w_q * p / theta(county_neigh[x_0_id])
 }
 
-
-
-#================================================================================
-# From here on it needs work
-
-
-## Flow smoother (Eqn (4)) 
-# neigh: flow neighborhood
-# neigh_c: county neighborhood
-
-flow_smooth <- function(neigh, neigh_c, main_dat, county_info, county_neigh) {
-
-    flow <- as.integer(name(neigh))
-    f <- length(neigh)
-
-    ## Lookup data for location based model
-    
-    
-    ## Lookup data for flow based model
-    # Center flow
-    orig_cf <- main_dat$orig_geocode[flow]
-    dest_cf <- main_dat$dest_geocode[flow]
-
-    # Neighbor flows
-    orig_f <- main_dat$orig_geocode[neigh]
-    dest_f <- main_dat$dest_geocode[neigh]
-
-    ## Lookup coordinates
-    # center flow
-    x_o0 <- c(county_info$lon[county_info$id == orig_cf],
-              county_info$lat[county_info$id == orig_cf])
-    x_d0 <- c(county_info$lon[county_info$id == dest_cf],
-              county_info$lat[county_info$id == dest_cf])
-    # neighbor flows
-    x_oq <- data.frame("lon" = county_info$lon[is.element(county_info$id, orig_f)],
-                       "lat" = county_info$lat[is.element(county_info$id, orig_f)])
-    x_dq <- data.frame("lon" = county_info$lon[is.element(county_info$id, dest_f)],
-                       "lat" = county_info$lat[is.element(county_info$id, dest_f)])
-
-
-    # lookup bandwith
-    sig_x0 <- county_info$bandwith[flow]
-    
-    # G(origin)
-    
-    # G(destination)
+## Flow smoother (Eqn (4))
+# T_q and T_0 are (character) flow ids
+flow_smooth <- function(T_q, T_0) {
+    ## Get origin and destination ids for the flows
+    x_Oq <- edges[T_q, 'orig_geocode']
+    x_O0 <- edges[T_0, 'orig_geocode']
+    x_Dq <- edges[T_q, 'dest_geocode']
+    x_D0 <- edges[T_0, 'dest_geocode']
+    ## Calculate location weights
+    L_O <- loc_smooth(x_Oq, x_O0)
+    L_D <- loc_smooth(x_Dq, x_D0)
+    return(L_O * L_D)
 }
 
-
-f <- function(x){
-    foo = names(x)
-    print(foo)
+## Volume smoother Eqn (5)
+# T_f is the (character) flow id
+vol_smooth <- function(T_f){
+    ## Get the flow neighborhood of T_f
+    neigh <- flow_neigh[[T_f]]
+    ## Get sizes of each flow in the neighborhood
+    sizes <- edges[neigh, "filings"]
+    weights <- sapply(neigh, function(x) flow_smooth(as.character(x), T_f))
+    out <- sum(sizes * weights)
+    return(out)
 }
-lapply(a, f)
+
+## Apply volume smoother to flow neighborhoods
+#OUT <- sapply(as.character(seq(1, length(flow_neigh))), vol_smooth)
+
+# benchmark
+library(microbenchmark)
+
+t <- microbenchmark(
+        vol_smooth("1"),
+        times = 10
+    )
+
+# Unit: seconds
+#            expr      min       lq     mean   median       uq      max neval
+# vol_smooth("1") 13.36506 13.43061 13.49197 13.43985 13.62927 13.69672    10
+# That would be 296 hours ...

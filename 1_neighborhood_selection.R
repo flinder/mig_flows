@@ -8,9 +8,13 @@ migration <- read.csv("data/countyMigration1978_2011.csv", header = TRUE,
 
 # remove flows to itself
 self <- migration$dest_geocode == migration$orig_geocode
-edges <- migration[which(!self & migration$year == 2010), ]
-edges <- edges[ , c(18, 17)]
-rownames(edges) <- seq(nrow(edges))
+edges_full <- migration[which(!self & migration$year == 2010), ]
+## New flow id orig_code + des_code + year
+#edges_full$flow_id <- paste0(edges_full$orig_geocode,
+#                             edges_full$dest_geocode,
+#                             edges_full$year)
+edges <- edges_full[ , c(18, 17)]
+rownames(edges) <- seq(1:nrow(edges))
 pop <- data[, 2]
 dist <- as.matrix(dist(as.matrix(data[, c(3, 4)])))
 
@@ -52,9 +56,11 @@ e <- nrow(edges)
 flow_neigh <- lapply(seq(1:e), a)
 county_info <- data
 county_neigh <- county
-names(flow_neigh) <- seq(1:length(flow_neigh))
+names(flow_neigh) <- seq(1:nrow(edges))
 
 save(county_info, file = "out_1/county_info.RData")
 save(county_neigh, file = "out_1/county_neighborhoods.RData")
 save(flow_neigh, file = "out_1/flow_neighborhoods.RData")
+edges <- edges_full[, c(18, 17, 11)]
+rownames(edges) <- NULL
 save(edges, file = "data/edges_2010.RData")

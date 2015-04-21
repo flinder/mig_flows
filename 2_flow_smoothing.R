@@ -63,8 +63,9 @@ loc_smooth <- function(x_q_id, x_0_id) {
     x_q <- county_info[county_info$GEOID == x_q_id, c(3, 4)]
     x_0 <- county_info[county_info$GEOID == x_0_id, c(3, 4)]
     # the value of this weight depends on if q is the last county in a neighborhood
-    neigh <- county_neigh[[x_0_id]]
-    last <- x_q_id == neigh[length(neigh)]
+    c_neigh <- county_neigh[[x_0_id]]
+    last <- x_q_id == c_neigh[length(c_neigh)]
+    if(length(last) == 0) last <- TRUE
     if(last) w_q <- county_info[county_info$GEOID == x_0_id, "weight"]
         else w_q <- 1
     sig_x0 <- county_info[county_info$GEOID == x_0_id, "bandwidth"]
@@ -100,8 +101,14 @@ vol_smooth <- function(T_f){
 ## Apply volume smoother to flow neighborhoods
 #OUT <- sapply(as.character(seq(1, length(flow_neigh))), vol_smooth)
 
-# benchmark
+
+## benchmark
 library(microbenchmark)
+
+microbenchmark(
+    OUT <- sapply(as.character(seq(1, 10)), vol_smooth),
+    times = 1
+)
 
 t <- microbenchmark(
         vol_smooth("1"),
@@ -112,3 +119,10 @@ t <- microbenchmark(
 #            expr      min       lq     mean   median       uq      max neval
 # vol_smooth("1") 13.36506 13.43061 13.49197 13.43985 13.62927 13.69672    10
 # That would be 296 hours ...
+OUT <- list()
+for(i in 1:10){
+    cat(i, "\r ")
+    OUT[[i]] <- vol_smooth(as.character(i))
+}
+
+

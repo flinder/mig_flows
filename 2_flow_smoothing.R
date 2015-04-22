@@ -19,6 +19,8 @@ gauss_loc <- function(x_0, x_q, s_xq) {
     d <- as.numeric(dist(matrix(c(x_0, x_q), nc = 2, byrow = TRUE)))
     if(d > s_xq) {
        out <- 0
+    } else if(d == 0 && s_xq == 0){
+      out  <- 1 / (2*pi)
     } else {
         out <- 1 / (2*pi) * exp(- d^2 / (2 * s_xq^2))
     }
@@ -44,7 +46,7 @@ theta <- function(loc_neigh) {
     ## Lookup population and weights
     w_q <- matrix(c(c(rep(1, (k - 1)), county_info$weight[county_info$GEOID == id]),
                          as.numeric(neigh)),nc=2)
-    w_q <- w_q[order(w_q[,2]),][,1]
+    w_q <- w_q[order(w_q[,2]),,drop=FALSE][,1]
     s_q <- county_info$pop[ind]
     # center bandwith
     sig_x0 <- county_info$bandwidth[county_info$GEOID == id]

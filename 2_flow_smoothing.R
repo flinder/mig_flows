@@ -42,7 +42,9 @@ theta <- function(loc_neigh) {
     x_q <- data.frame("lon" = county_info$lon[ind],
                        "lat" = county_info$lat[ind])
     ## Lookup population and weights
-    w_q <- c(rep(1, (k - 1)), county_info$weight[county_info$GEOID == neigh[k]])
+    w_q <- matrix(c(c(rep(1, (k - 1)), county_info$weight[county_info$GEOID == id]),
+                         as.numeric(neigh)),nc=2)
+    w_q <- w_q[order(w_q[,2]),][,1]
     s_q <- county_info$pop[ind]
     # center bandwith
     sig_x0 <- county_info$bandwidth[county_info$GEOID == id]

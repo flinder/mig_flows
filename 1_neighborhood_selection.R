@@ -35,7 +35,8 @@ for(i in 1:n){
     pop_n <- pop[ngbrhd]
     weight[i] <- (p - (sum(pop_n[-length(pop_n)]))) / pop_n[length(pop_n)]  
     bandwidth[i] <- dist[i, dist_ord[last_c]]
-    county[[i]] <- data[ngbrhd[-1], 1]
+    #county[[i]] <- data[ngbrhd[-1], 1]
+    county[[i]] <- data[ngbrhd, 1]
 }
 
 a <- function(i) {

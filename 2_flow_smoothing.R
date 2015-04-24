@@ -106,17 +106,6 @@ vol_smooth <- function(T_f){
 
 ## benchmark
 library(microbenchmark)
-
-microbenchmark(
-    OUT <- sapply(as.character(seq(1, 10)), vol_smooth),
-    times = 1
-)
-
-t <- microbenchmark(
-        vol_smooth("1"),
-        times = 10
-    )
-
 # Unit: seconds
 #            expr      min       lq     mean   median       uq      max neval
 # vol_smooth("1") 13.36506 13.43061 13.49197 13.43985 13.62927 13.69672    10

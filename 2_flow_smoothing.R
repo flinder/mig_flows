@@ -138,6 +138,5 @@ for(i in 1:nrow(edges)) {
   }
 }
 
-sel_flows <- smoothed_flows[out]
+save(out, file = "out_2/excl_flows.RData")
 
-save(sel_flows, file = "out_2/min_dist_s_flows.RData")

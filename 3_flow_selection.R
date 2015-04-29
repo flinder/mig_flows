@@ -21,6 +21,8 @@ flowSelection = function(numFlows,distThresh){
   Ts[1,] = c(Tf[1,],county_info$lon[county_info$GEOID==Tf[,1][1]],county_info$lat[county_info$GEOID==Tf[,1][1]],
                 county_info$lon[county_info$GEOID==Tf[,2][1]],county_info$lat[county_info$GEOID==Tf[,2][1]])
   
+  # One suggestion for optimizing this nested loop:  R-loops are notoriously (but not always) slow --> this should/will 
+  # be re-mapped to apply(.) (or list-apply-like operation that maps a function to a collection of inputs)
   k = 1
   for(i in 2:nrow(Tf)){
     select = TRUE

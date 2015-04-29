@@ -11,6 +11,7 @@ load("data/edges_2010.RData")
 load("out_2/smoothed_flows.RData")
 smoothed_edges = data.matrix(cbind(edges,smoothed_flows))
 
+
 ## main_dat and county_info are given from previous functions. 
 ## numFlows and distThresh are chosen based on desired map output.
 flowSelection = function(numFlows,distThresh){

@@ -72,11 +72,11 @@ loc_smooth <- function(x_q_id, x_0_id) {
     if(last) w_q <- county_info[county_info$GEOID == x_0_id, "weight"]
         else w_q <- 1
     sig_x0 <- county_info[county_info$GEOID == x_0_id, "bandwidth"]
-    #sig_xq<-county_info[county_info$GEOID == x_q_id, "bandwidth"]
-    #if (sig_x0+sig_xq<dist(sig_x0,sig_xq))
-    #out=gauss_loc(x_q, x_0, sig_x0) * w_q * p / theta(county_neigh[x_0_id])
-    #else out=0
-    #return(out)
+    sig_xq<-county_info[county_info$GEOID == x_q_id, "bandwidth"]
+    if (sig_x0 + sig_xq < dist(sig_x0, sig_xq)){
+        out <- gauss_loc(x_q, x_0, sig_x0) * w_q * p / theta(county_neigh[x_0_id])
+    } else out <- 0
+    return(out)
     gauss_loc(x_q, x_0, sig_x0) * w_q * p / theta(county_neigh[x_0_id])
 }
 
@@ -121,3 +121,23 @@ for(i in 1:10){
     OUT[[i]] <- vol_smooth(as.character(i))
 }
 
+#### Temporary exclusion of flows between overlapping neightborhoods
+data <- read.csv("data/County2010wCoordPOP.csv", header = TRUE,
+                 colClasses = c("character", NA, NA, NA))
+dist <- as.matrix(dist(as.matrix(data[, c(3, 4)])))
+band <- outer(county_info$bandwidth, county_info$bandwidth, FUN = "+")
+cond <- band > dist
+rownames(cond) <- colnames(cond) <- county_info$GEOID
+
+out <- rep(NA, nrow(edges))
+for(i in 1:nrow(edges)) {
+  if(cond[edges$orig_geocode[i], edges$dest_geocode[i]]){
+      out[i] <- FALSE
+  } else {
+      out[i] <- TRUE
+  }
+}
+
+sel_flows <- smoothed_flows[out]
+
+save(sel_flows, file = "out_2/min_dist_s_flows.RData")

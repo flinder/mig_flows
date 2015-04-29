@@ -72,6 +72,11 @@ loc_smooth <- function(x_q_id, x_0_id) {
     if(last) w_q <- county_info[county_info$GEOID == x_0_id, "weight"]
         else w_q <- 1
     sig_x0 <- county_info[county_info$GEOID == x_0_id, "bandwidth"]
+    #sig_xq<-county_info[county_info$GEOID == x_q_id, "bandwidth"]
+    #if (sig_x0+sig_xq<dist(sig_x0,sig_xq))
+    #out=gauss_loc(x_q, x_0, sig_x0) * w_q * p / theta(county_neigh[x_0_id])
+    #else out=0
+    #return(out)
     gauss_loc(x_q, x_0, sig_x0) * w_q * p / theta(county_neigh[x_0_id])
 }
 
